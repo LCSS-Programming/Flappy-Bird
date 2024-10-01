@@ -1,0 +1,137 @@
+#pos of screen on monitor
+import os
+os.environ['SDL_VIDEO_WINDOW_POS']="0,35"
+
+import pgzrun
+import random
+WIDTH=700
+HEIGHT=750
+
+global score
+score=0
+
+global mode
+mode='Press J to Begin'
+
+global highscore
+f = open('topbird','r+')
+highscore=f.readline()
+f.close()
+
+x=random.randint(100,500)
+
+bird=Actor('bird0')
+bird.x=WIDTH/2
+bird.y=HEIGHT/2
+
+pipetop=Actor('top')
+pipetop.bottom=x
+pipetop.left=2000
+
+pipebottom=Actor('bottom')
+pipebottom.top=x+300
+pipebottom.left=2000
+
+def draw():
+
+    global score
+    global highscore
+    global mode
+    
+    screen.fill((128,0,130))
+
+    screen.draw.filled_rect(Rect(0,0,800,700), (163, 232, 254))
+    screen.draw.filled_rect(Rect(0,700,700,200), (88, 242, 152))
+    
+    bird.draw()
+    pipetop.draw()
+    pipebottom.draw()
+
+    high_score_screen()
+
+    screen.draw.text(str(mode),(WIDTH/2-200,HEIGHT/2-100),color=(2,40,25),fontsize=70)
+
+    if bird.top>HEIGHT:
+        screen.draw.text('You lose',(WIDTH/2-150,HEIGHT/2),color=(2,40,25),fontsize=125)
+        screen.draw.text('Highscore:'+str(highscore),(WIDTH/2,650),color=(2,40,25),fontsize=50)
+
+    screen.draw.text('Score: '+str(score),(WIDTH/2,700),color=(2,40,25),fontsize=50)
+
+def update():
+    global score
+    global mode
+
+    if score<=13:
+        m=300
+    else:
+        m=random.randint(200,400)
+    
+    if bird.image=='birddead':
+        x=11
+    elif mode=='Press J to Begin':
+        x=0
+    else:
+        x=7
+    bird.top+=x
+
+    if bird.image==('birddead'):
+        q=0
+        clock.schedule(change_mode,10)
+    elif mode=='Press J to Begin':
+        q=0
+    else:
+        q=5
+    
+    pipetop.left-=q
+    pipebottom.left-=q
+
+    t=random.randint(100,500)
+    
+    if pipetop.left==0:
+        pipetop.left=WIDTH
+        pipebottom.left=WIDTH
+        pipetop.bottom=t
+        pipebottom.top=t+m
+        score+=1
+
+    if bird.colliderect(pipetop):
+        bird.image='birddead'
+
+    if bird.colliderect(pipebottom):
+        bird.image='birddead'
+
+    if bird.top>HEIGHT:
+        bird.image='birddead'
+        bird.left=1000000
+        bird.top=1000000
+
+    if bird.top<0:
+        bird.top=0
+
+def on_key_down(key):
+
+    global mode
+    
+    if(key==keys.F):
+        if bird.image=='bird0':
+            bird.top-=160
+    if(key==keys.J):
+        mode=' '
+
+def change_mode():
+    mode='Press J to Begin'
+    
+def high_score_screen():
+    global score
+    global highscore
+    f = open('topbird','r+')
+    s = str(score)
+    highscore=f.readline()
+    f.seek(0)
+    if score>=int(highscore):
+        f.write(s)
+    f.close()
+
+
+#always at bottom
+pgzrun.go()
